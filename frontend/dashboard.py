@@ -1,6 +1,60 @@
 import streamlit as st
 import time
 
+def search_news(categories, language, sources, summary_type, location, style):
+    # Simulate a search operation
+    time.sleep(2)
+    result = {
+        "Technology": {
+            "summary": "Tech headlines today focused on AI breakthroughs and new product launches. OpenAI introduced GPT-5, while Apple unveiled a new AR headset.",
+            "articles": [
+                {
+                    "category": "Technology",
+                    "title": "OpenAI Releases GPT-5",
+                    "description": "OpenAI has announced the release of GPT-5, offering major improvements in reasoning and multimodal capabilities.",
+                    "url": "https://example.com/openai-gpt5",
+                    "source": "CNN",
+                    "language": "en",
+                    "location": "International"
+                },
+                {
+                    "category": "Technology",
+                    "title": "Apple Launches New AR Headset",
+                    "description": "Apple has revealed its latest innovation: an AR headset aimed at enhancing digital experiences.",
+                    "url": "https://example.com/apple-ar-headset",
+                    "source": "BBC",
+                    "language": "en",
+                    "location": "USA"
+                }
+            ]
+        },
+        "Health": {
+            "summary": "The WHO issued new guidelines on mental health support, while research shows benefits of walking for older adults.",
+            "articles": [
+                {
+                    "category": "Health",
+                    "title": "WHO Updates Mental Health Guidelines",
+                    "description": "New WHO guidelines aim to improve access to mental health support globally.",
+                    "url": "https://example.com/who-mental-health",
+                    "source": "The Guardian",
+                    "language": "en",
+                    "location": "International"
+                },
+                {
+                    "category": "Health",
+                    "title": "Walking Benefits for Older Adults",
+                    "description": "A new study highlights the physical and cognitive benefits of daily walking for people over 60.",
+                    "url": "https://example.com/walking-study",
+                    "source": "Vox",
+                    "language": "en",
+                    "location": "USA"
+                }
+            ]
+        }
+    }
+
+    print(f"Found {len(categories)} articles in {language} from {sources}.")
+    return result
 
 # Page configuration
 st.set_page_config(
@@ -77,7 +131,7 @@ if st.session_state.waiting and not st.session_state.search_result:
             st.toast('Searching the web...')
             s.update(label="Looking for news articles...", state="running")
             time.sleep(5)
-            st.session_state.search_result = None
+            st.session_state.search_result = search_news(categories=categories, language=language, sources=sources, summary_type=summary_type, location=location, style=style)
             if st.session_state.search_result == None:
                 raise Exception("Error while looking for news, try again later...")
             
@@ -98,3 +152,19 @@ if st.session_state.waiting and not st.session_state.search_result:
     finally:
         st.session_state.waiting = False
         st.rerun()  # Final rerun to re-enable the button and display results
+
+# --- RESULTS SECTION ---
+if st.session_state.search_result:
+    result = st.session_state.search_result
+    st.markdown("---")
+    st.markdown("## News Summary")
+
+    for category, data in result.items():
+        st.markdown(f"#### {category}")
+        st.info(data["summary"]) 
+
+        for article in data["articles"]:
+            with st.expander(f"{article['title']} — *{article['source']}*"):
+                st.markdown(f"**Description**: {article['description']}")
+                st.markdown(f"**Location**: {article['location']}")
+                st.markdown(f"[🔗 Read full article]({article['url']})", unsafe_allow_html=True)
