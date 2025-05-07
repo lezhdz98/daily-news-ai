@@ -3,12 +3,23 @@ import sys
 from utils import generate_pdf
 import time
 import os
+import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.browser_agent import search_and_process_articles, main
 
 
-def search_news(categories, language, sources, summary_type, location, style):
-    return {}
+async def search_news(categories, language, summary_type, region, style):
+    try:
+        cat = ",".join(categories).lower()
+        result = await search_and_process_articles(
+            region=region,
+            categories=cat
+        )
+        return result
+    except Exception as e:
+        print(f"Error during search: {e}")
+        return None
+    
 
 
 # Page configuration
@@ -35,6 +46,7 @@ for key, value in state_defaults.items():
 # --- FORM SECTION ---
 st.markdown("### Search configuration")
 st.caption("Select the desired parameters for the news search. The AI agent will use these parameters to browse the web and summarize the news articles.")
+
 col1, col2 = st.columns(2, gap="medium")
 with col1:
     categories = st.multiselect(
@@ -42,9 +54,7 @@ with col1:
         options=["Politics", "Finance", "Technology", "Science", "Health", "Sports", "Entertainment", "Lifestyle", "Education", "Opinion", "Crime & Law", "Environmnet"],
         default=["Politics"],
         max_selections=3
-    )
-    
-    
+    )   
 with col2:
     location = st.selectbox(
         "Location",
@@ -59,6 +69,7 @@ with col2:
     summary_type = st.selectbox("Summary Type", ["Concise", "Detailed"])
 with col3:
     language = st.selectbox("Language", ["en", "es", "fr", "de"], index=0)
+
 submitted = st.button("Search", disabled=st.session_state.waiting)
 
 # If button was clicked and not waiting
@@ -81,7 +92,18 @@ if st.session_state.waiting and not st.session_state.search_result:
             st.toast('Searching the web...')
             s.update(label="Looking for news articles...", state="running")
             time.sleep(1)
-            st.session_state.search_result = None
+            result = asyncio.run(search_news(
+                categories=categories, 
+                region=location,
+                language=language,
+                summary_type=summary_type,
+                style=style
+            ))
+            print(f"RESULT: {result}")
+            if not result:
+                raise Exception("No result returned from the AI agent.")
+            st.session_state.search_result = result
+            st.session_state.search_result = result.final_result() 
             if st.session_state.search_result == None:
                 raise Exception("Error while looking for news, try again later...")
             
@@ -102,16 +124,7 @@ if st.session_state.search_result:
     result = st.session_state.search_result
     st.markdown("---")
     st.markdown("## News Summary")
+    st.markdown(result)
     # Download button for PDF
     file_name, data = generate_pdf(result)
     st.download_button("Download PDF", data, file_name)
-
-    for category, data in result.items():
-        st.markdown(f"#### {category}")
-        st.info(data["summary"]) 
-
-        for article in data["articles"]:
-            with st.expander(f"{article['title']} — *{article['source']}*"):
-                st.markdown(f"**Description**: {article['description']}")
-                st.markdown(f"**Location**: {article['location']}")
-                st.markdown(f"[🔗 Read full article]({article['url']})", unsafe_allow_html=True)
