@@ -1,6 +1,5 @@
 import time
 from markdown_pdf import MarkdownPdf, Section
-from io import BytesIO
 
 
 def generate_pdf(articles):
