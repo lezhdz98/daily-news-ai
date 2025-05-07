@@ -1,4 +1,5 @@
 import streamlit as st
+from utils import generate_pdf
 import time
 
 def search_news(categories, language, sources, summary_type, location, style):
@@ -55,6 +56,8 @@ def search_news(categories, language, sources, summary_type, location, style):
 
     print(f"Found {len(categories)} articles in {language} from {sources}.")
     return result
+
+
 
 # Page configuration
 st.set_page_config(
@@ -130,7 +133,7 @@ if st.session_state.waiting and not st.session_state.search_result:
             # Only upload video if its a new file
             st.toast('Searching the web...')
             s.update(label="Looking for news articles...", state="running")
-            time.sleep(5)
+            time.sleep(1)
             st.session_state.search_result = search_news(categories=categories, language=language, sources=sources, summary_type=summary_type, location=location, style=style)
             if st.session_state.search_result == None:
                 raise Exception("Error while looking for news, try again later...")
@@ -138,7 +141,7 @@ if st.session_state.waiting and not st.session_state.search_result:
             st.toast('News articles looked successfully!', icon='✅')
             st.toast('Generating news summary...')
             s.update(label="Summarizing news articles...", state="running")
-            time.sleep(5)
+            time.sleep(1)
             results = None
             st.session_state.analysis_result = None
 
@@ -158,6 +161,9 @@ if st.session_state.search_result:
     result = st.session_state.search_result
     st.markdown("---")
     st.markdown("## News Summary")
+    # Download button for PDF
+    file_name, data = generate_pdf(result)
+    st.download_button("Download PDF", data, file_name)
 
     for category, data in result.items():
         st.markdown(f"#### {category}")
