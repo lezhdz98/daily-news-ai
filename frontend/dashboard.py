@@ -60,7 +60,7 @@ col1, col2 = st.columns(2, gap="medium")
 with col1:
     categories = st.multiselect(
         "Categories",
-        options=["Politics", "Finance", "Technology", "Science", "Health", "Sports", "Entertainment", "Lifestyle", "Education", "Opinion", "Crime & Law", "Environmnet"],
+        options=["Politics", "Finance", "Technology", "Science", "Health", "Sports", "Entertainment", "Lifestyle", "Education", "Opinion", "Crime & Law", "Environment"],
         default=["Politics"],
         max_selections=3
     )   
@@ -120,7 +120,6 @@ if st.session_state.waiting and not st.session_state.search_result:
 
             s.update(label="Loading results...", state="complete")
             st.toast('Loading results...')
-            time.sleep(2)
             
     except Exception as e:
         st.session_state.error_message = f"Error during processing: {e}"
