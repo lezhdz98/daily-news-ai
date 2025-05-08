@@ -9,7 +9,6 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-4o-mini")
 
 async def search_and_process_articles(
-    region: str = "International", 
     categories: str = "politics, sports, finance", 
     summary_type: str = "detailed", 
     summary_style: str = "formal",
@@ -31,76 +30,18 @@ async def search_and_process_articles(
     string_sources = ""
 
     valid_categories = {
-        "politics": (
-            "### Politics\n"
-            "- The Hill: https://thehill.com/\n"
-            "- BBC Politics: https://www.bbc.com/news/politics\n"
-            "- Politico: https://www.politico.com/\n\n"
-        ),
-        "finance": (
-            "### Business & Economy\n"
-            "- CNBC: https://www.cnbc.com/\n"
-            "- Bloomberg: https://www.bloomberg.com/\n\n"
-        ),
-        "technology": (
-            "### Technology\n"
-            "- TechCrunch: https://techcrunch.com/\n"
-            "- The Verge: https://www.theverge.com/tech\n"
-            "- Geekwire: https://www.geekwire.com/\n\n"
-        ),
-        "science": (
-            "### Science\n"
-            "- ScienceDaily: https://www.sciencedaily.com/\n"
-            "- Scientific American: https://www.scientificamerican.com/\n"
-            "- NASA News: https://www.nasa.gov/news\n\n"
-        ),
-        "health": (
-            "### Health\n"
-            "- Healthline: https://www.healthline.com/\n"
-            "- WebMD: https://www.webmd.com/news\n"
-            "- WHO News: https://www.who.int/news\n\n"
-        ),
-        "sports": (
-            "### Sports\n"
-            "- BBC Sport: https://www.bbc.com/sport\n"
-            "- ESPN: https://www.espn.com/\n"
-            "- Bleacher Report: https://bleacherreport.com/\n\n"
-        ),
-        "entertainment": (
-            "### Entertainment\n"
-            "- Variety: https://variety.com/\n"
-            "- Entertainment Weekly: https://ew.com/\n"
-            "- The Verge – Entertainment: https://www.theverge.com/entertainment\n\n"
-        ),
-        "lifestyle": (
-            "### Lifestyle\n"
-            "- VICE Life: https://www.vice.com/en/section/life\n"
-            "- Refinery29: https://www.refinery29.com/\n"
-            "- NYTimes Style: https://www.nytimes.com/section/style\n\n"
-        ),
-        "education": (
-            "### Education\n"
-            "- Edutopia: https://www.edutopia.org/\n"
-            "- Inside Higher Ed: https://www.insidehighered.com/\n"
-            "- Education Week: https://www.edweek.org/\n\n"
-        ),
-        "opinion": (
-            "### Opinion\n"
-            "- The Guardian Opinion: https://www.theguardian.com/uk/commentisfree\n"
-            "- CNN Opinion: https://edition.cnn.com/opinions\n"
-            "- Al Jazeera Opinion: https://www.aljazeera.com/opinions/\n\n"
-        ),
-        "crime & law": (
-            "### Crime & Law\n"
-            "- Law & Crime: https://lawandcrime.com/\n"
-            "- Reuters Crime/Legal: https://www.reuters.com/legal/\n\n"
-        ),
-        "environment": (
-            "### Environment\n"
-            "- Mongabay: https://news.mongabay.com/\n"
-            "- Grist: https://grist.org/\n"
-            "- National Geographic Environment: https://www.nationalgeographic.com/environment/\n\n"
-        )
+        "politics": "### Politics\n- Politico: https://www.politico.com/\n\n",
+        "finance": "### Business & Economy\n- Bloomberg: https://www.bloomberg.com/\n\n",
+        "technology": "### Technology\n- TechCrunch: https://techcrunch.com/\n",
+        "science": "### Science\n- ScienceDaily: https://www.sciencedaily.com/\n",
+        "health": "### Health\n- Healthline: https://www.healthline.com/\n",
+        "sports": "### Sports\n- CNN Sport: https://edition.cnn.com/sport\n",
+        "entertainment": "### Entertainment\n- Entertainment Weekly: https://ew.com/\n",
+        "lifestyle": "### Lifestyle\n- VICE Life: https://www.vice.com/en/section/life\n",
+        "education": "### Education\n- Edutopia: https://www.edutopia.org/\n",
+        "opinion": "### Opinion\n- The Guardian Opinion: https://www.theguardian.com/uk/commentisfree\n",
+        "crime & law": "### Crime & Law\n- Law & Crime: https://lawandcrime.com/\n",
+        "environment": "### Environment\n- National Geographic Environment: https://www.nationalgeographic.com/environment/\n\n"
     }
 
     for category in categories:
@@ -116,26 +57,22 @@ async def search_and_process_articles(
     today = date.today().strftime("%B %d, %Y")
 
     task = (
-        f"Search for news articles published today ({today}) in the specified region: {region}.\n"
-        "If the region is a specific country (e.g., 'Mexico'), focus only on news from that country.\n"
-        "If the region is broader (e.g., 'International'), include major global news.\n\n"
+        f"Search for news articles published today ({today})\n"
         f"Focus on the following categories: {categories}.\n"
         "Use only the trusted sources listed for each category.\n" 
-        "If a specific source does not contain relevant information, skip it and check the next trusted source. " 
         "If no relevant articles are found after checking all sources for a category, "
-        "clearly state that no results were found for that category and suggest that " 
-        "the user consider selecting a broader region for more results.\n\n"
+        "clearly state that no results were found for that category .\n\n" 
         f"{string_sources}\n"
         "Visit each site and extract the latest 1–2 headlines that are relevant to the category.\n\n"
+        "Extract the latest 1–2 headlines that are relevant to each category. You must find maximum up to TWO Articles by category.\n\n"
         f"Return all results in **markdown format** and in **{summary_language}**.\n\n"
         "For each article, include:\n"
         "- The **article title**\n"
         f"- A **comprehensive summary** written in a **{summary_type_prompt}** manner and a **{summary_style}** tone\n"
         "- The **URL** to the article\n\n"
-        "Exclude ads, navigation menus, unrelated content, and metadata. Focus solely on accurate and clear summaries of the article content."
+        "Exclude ads, navigation menus, unrelated content, and metadata. Focus solely on accurate and clear summaries of the article content.\n\n"
+        "Don't hallucinate or make up information. If you don't know a specific detail or field, ignore it and leave it blank.\n\n"
     )
-
-
 
     print("\n=== TASK ===\n")
     print(task)
@@ -144,6 +81,7 @@ async def search_and_process_articles(
     agent = Agent(
         task=task,
         llm=llm,
+        save_conversation_path='conversation.txt',
     )
 
     # Run the agent asynchronously and fetch the result

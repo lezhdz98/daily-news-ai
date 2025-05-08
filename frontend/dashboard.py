@@ -7,20 +7,13 @@ import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.browser_agent import search_and_process_articles, main
 
-LANGUAGES = {
-    "en": "English",
-    "es": "Spanish",
-    "fr": "French",
-    "de": "German"
-}
-
 async def search_news(categories, language, summary_type, region, style):
     try:
         cat = ",".join(categories).lower()
         result = await search_and_process_articles(
             region=region,
             categories=cat,
-            summary_language=LANGUAGES.get(language, "English"),
+            summary_language=language,
             summary_type=summary_type,
             summary_style=style
         )
@@ -29,8 +22,6 @@ async def search_news(categories, language, summary_type, region, style):
         print(f"Error during search: {e}")
         return None
     
-
-
 # Page configuration
 st.set_page_config(
     page_title="Daily News Browser AI Agent",
@@ -56,20 +47,12 @@ for key, value in state_defaults.items():
 st.markdown("### Search configuration")
 st.caption("Select the desired parameters for the news search. The AI agent will use these parameters to browse the web and summarize the news articles.")
 
-col1, col2 = st.columns(2, gap="medium")
-with col1:
-    categories = st.multiselect(
-        "Categories",
-        options=["Politics", "Finance", "Technology", "Science", "Health", "Sports", "Entertainment", "Lifestyle", "Education", "Opinion", "Crime & Law", "Environment"],
-        default=["Politics"],
-        max_selections=3
-    )   
-with col2:
-    location = st.selectbox(
-        "Location",
-        options=["International", "USA", "Mexico"],
-        index=0,
-    )
+categories = st.multiselect(
+    "Categories",
+    options=["Politics", "Finance", "Technology", "Science", "Health", "Sports", "Entertainment", "Lifestyle", "Education", "Opinion", "Crime & Law", "Environment"],
+    default=["Politics"],
+    max_selections=3
+)   
     
 col1, col2, col3 = st.columns(3, gap="medium")
 with col1:
@@ -77,7 +60,7 @@ with col1:
 with col2:
     summary_type = st.selectbox("Summary Type", ["Concise", "Detailed"])
 with col3:
-    language = st.selectbox("Language", ["en", "es", "fr", "de"], index=0)
+    language = st.selectbox("Language", ["English", "Spanish", "French", "Deutsch"], index=0)
 
 submitted = st.button("Search", disabled=st.session_state.waiting)
 
@@ -103,12 +86,11 @@ if st.session_state.waiting and not st.session_state.search_result:
             time.sleep(1)
             result = asyncio.run(search_news(
                 categories=categories, 
-                region=location,
                 language=language,
                 summary_type=summary_type,
                 style=style
             ))
-            print(f"RESULT: {result}")
+
             if not result:
                 raise Exception("No result returned from the AI agent.")
             st.session_state.search_result = result
