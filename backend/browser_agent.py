@@ -26,7 +26,7 @@ async def search_and_process_articles(
         str: Processed result of the articles.
     """
 
-    categories = categories.lower().split(", ")
+    categories = categories.lower().split(",")
 
     string_sources = ""
 

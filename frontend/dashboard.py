@@ -7,13 +7,22 @@ import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.browser_agent import search_and_process_articles, main
 
+LANGUAGES = {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German"
+}
 
 async def search_news(categories, language, summary_type, region, style):
     try:
         cat = ",".join(categories).lower()
         result = await search_and_process_articles(
             region=region,
-            categories=cat
+            categories=cat,
+            summary_language=LANGUAGES.get(language, "English"),
+            summary_type=summary_type,
+            summary_style=style
         )
         return result
     except Exception as e:
@@ -126,5 +135,9 @@ if st.session_state.search_result:
     st.markdown("## News Summary")
     st.markdown(result)
     # Download button for PDF
-    file_name, data = generate_pdf(result)
-    st.download_button("Download PDF", data, file_name)
+    try:
+        file_name, data = generate_pdf(result)
+        st.download_button("Download PDF", data, file_name)
+    except Exception as e:
+        st.session_state.error_message = f"Error during PDF generation: {e}"
+        st.error(st.session_state.error_message)
