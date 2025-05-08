@@ -8,7 +8,13 @@ load_dotenv()
 # Initialize LLM
 llm = ChatOpenAI(model="gpt-4o-mini")
 
-async def search_and_process_articles(region: str = "International", categories: str = "politics, sports, finance") -> str:
+async def search_and_process_articles(
+    region: str = "International", 
+    categories: str = "politics, sports, finance", 
+    summary_type: str = "detailed", 
+    summary_style: str = "formal",
+    summary_language: str = "English"
+) -> str:
     """
     Searches articles based on region and categories, then processes the articles with LLM.
 
@@ -102,20 +108,33 @@ async def search_and_process_articles(region: str = "International", categories:
             raise ValueError(f"Invalid category: {category}. Allowed categories are: {', '.join(valid_categories.keys())}")
         string_sources += valid_categories[category]
 
+    if(summary_type.lower() == "concise"):
+        summary_type_prompt = "concise (less than 100 words per article)"
+    else:
+        summary_type_prompt = "detailed"
+    
     today = date.today().strftime("%B %d, %Y")
 
     task = (
         f"Search for news articles published today ({today}) in the specified region: {region}.\n"
-        f"Focus on the following categories: {categories}.\n\n"
-        "Use only the following trusted sources for each category:\n\n"
+        "If the region is a specific country (e.g., 'Mexico'), focus only on news from that country.\n"
+        "If the region is broader (e.g., 'International'), include major global news.\n\n"
+        f"Focus on the following categories: {categories}.\n"
+        "Use only the trusted sources listed for each category.\n" 
+        "If a specific source does not contain relevant information, skip it and check the next trusted source. " 
+        "If no relevant articles are found after checking all sources for a category, "
+        "clearly state that no results were found for that category and suggest that " 
+        "the user consider selecting a broader region for more results.\n\n"
         f"{string_sources}\n"
         "Visit each site and extract the latest 1–2 headlines that are relevant to the category.\n\n"
-        "Return only in **markdown format** with:\n"
+        f"Return all results in **markdown format** and in **{summary_language}**.\n\n"
+        "For each article, include:\n"
         "- The **article title**\n"
-        "- A **full summary** of the article (not just the lead paragraph)\n"
+        f"- A **comprehensive summary** written in a **{summary_type_prompt}** manner and a **{summary_style}** tone\n"
         "- The **URL** to the article\n\n"
-        "Do not include ads, navigation menus, unrelated content, or metadata. Focus on accurate and clear summaries of the articles."
+        "Exclude ads, navigation menus, unrelated content, and metadata. Focus solely on accurate and clear summaries of the article content."
     )
+
 
 
     print("\n=== TASK ===\n")
@@ -134,9 +153,7 @@ async def search_and_process_articles(region: str = "International", categories:
 
 async def main():
     # Call the function with your desired region and categories
-    articles_summary = await search_and_process_articles(
-        region="USA", categories="sports"
-    )
+    articles_summary = await search_and_process_articles()
     print("\n=== Summarized Articles ===\n")
     print(articles_summary.final_result())
     print("\n=== END ===\n")
