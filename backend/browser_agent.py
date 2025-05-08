@@ -26,7 +26,7 @@ async def search_and_process_articles(
         str: Processed result of the articles.
     """
 
-    categories = categories.lower().split(", ")
+    categories = categories.lower().split(",")
 
     string_sources = ""
 
@@ -158,5 +158,7 @@ async def main():
     print(articles_summary.final_result())
     print("\n=== END ===\n")
 
-# Run the asynchronous main function
-asyncio.run(main())
+# Only run the main function if this script is executed directly
+if __name__ == "__main__":
+    # Run the asynchronous main function
+    asyncio.run(main())
