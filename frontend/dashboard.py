@@ -7,15 +7,14 @@ import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.browser_agent import search_and_process_articles, main
 
-async def search_news(categories, language, summary_type, region, style):
+async def search_news(categories, language, summary_type, style):
     try:
-        cat = ",".join(categories).lower()
+        categories = [category.lower() for category in categories]
         result = await search_and_process_articles(
-            region=region,
-            categories=cat,
-            summary_language=language,
+            categories=categories,
             summary_type=summary_type,
-            summary_style=style
+            summary_style=style,
+            summary_language=language
         )
         return result
     except Exception as e:
@@ -26,7 +25,7 @@ async def search_news(categories, language, summary_type, region, style):
 st.set_page_config(
     page_title="Daily News Browser AI Agent",
     page_icon="🗞️",
-    layout="wide",
+    layout="centered"
 )
 
 st.title("Daily News Browser AI Agent")
@@ -56,7 +55,7 @@ categories = st.multiselect(
     
 col1, col2, col3 = st.columns(3, gap="medium")
 with col1:
-    style = st.selectbox("Symmary Style", ["Formal", "Informal", "Funny", "Technical"])
+    style = st.selectbox("Symmary Style", ["Formal", "Informal", "Humorous", "Technical"])
 with col2:
     summary_type = st.selectbox("Summary Type", ["Concise", "Detailed"])
 with col3:
