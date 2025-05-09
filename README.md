@@ -22,8 +22,8 @@ Using the `browser-use` package, the AI agent mimics human-like web behavior by 
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/daily-news-browser-ai-agent.git
-cd daily-news-browser-ai-agent
+git clone https://github.com/lezhdz98/daily-news-ai.git 
+cd daily-news-ai
 ```
 
 2. **Install `uv` for virtual environment management:**
