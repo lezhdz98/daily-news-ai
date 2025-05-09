@@ -9,23 +9,24 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-4o-mini")
 
 async def search_and_process_articles(
-    categories: str = "politics, sports, finance", 
+    categories: list[str],
     summary_type: str = "detailed", 
     summary_style: str = "formal",
     summary_language: str = "English"
 ) -> str:
     """
-    Searches articles based on region and categories, then processes the articles with LLM.
+    Searches for news articles published today based on the specified categories,
+    then processes and summarizes them using a language model.
 
     Args:
-        region (str): Region to focus the search on (e.g., "USA", "Mexico", etc.).
-        categories (str): Categories to filter the articles by (e.g., "politics", "sports", etc.).
+        categories (list[str]): List of categories to filter articles by (e.g., "politics", "sports", "finance").
+        summary_type (str): Type of summary to generate, e.g., "detailed" or "concise".
+        summary_style (str): Tone/style of the summary, e.g., "formal", "humorous".
+        summary_language (str): Language in which the summary should be written, e.g., "English", "Spanish".
 
     Returns:
-        str: Processed result of the articles.
+        str: A markdown-formatted string containing the article titles, summaries, and URLs.
     """
-
-    categories = categories.lower().split(",")
 
     string_sources = ""
 
@@ -56,23 +57,30 @@ async def search_and_process_articles(
     
     today = date.today().strftime("%B %d, %Y")
 
+    # Define the task for the agent
     task = (
-        f"Search for news articles published today ({today})\n"
-        f"Focus on the following categories: {categories}.\n"
-        "Use only the trusted sources listed for each category.\n" 
-        "If no relevant articles are found after checking all sources for a category, "
-        "clearly state that no results were found for that category .\n\n" 
+        f"Search for news articles published **today** ({today}).\n\n"
+        f"Focus only on these categories: {categories}.\n"
+        "Use **only** the trusted sources listed below for each category.\n\n"
         f"{string_sources}\n"
-        "Visit each site and extract the latest 1–2 headlines that are relevant to the category.\n\n"
-        "Extract the latest 1–2 headlines that are relevant to each category. You must find maximum up to TWO Articles by category.\n\n"
-        f"Return all results in **markdown format** and in **{summary_language}**.\n\n"
-        "For each article, include:\n"
-        "- The **article title**\n"
-        f"- A **comprehensive summary** written in a **{summary_type_prompt}** manner and a **{summary_style}** tone\n"
-        "- The **URL** to the article\n\n"
-        "Exclude ads, navigation menus, unrelated content, and metadata. Focus solely on accurate and clear summaries of the article content.\n\n"
-        "Don't hallucinate or make up information. If you don't know a specific detail or field, ignore it and leave it blank.\n\n"
+        
+        "For each category:\n"
+        "- Visit each source listed.\n"
+        "- Extract **up to 2 recent headlines** that are relevant.\n"
+        "- Go to the article page and extract the **main content**.\n"
+        "- If **no relevant articles** are found after checking all sources, clearly state: 'No results found for this category.'\n\n"
+        
+        f"For each article, provide the following in **markdown format** and in **{summary_language} language**:\n"
+        "- **Title** of the article\n"
+        f"- A **comprehensive summary** in a **{summary_type_prompt}** manner and **{summary_style}** tone\n"
+        "- **Direct URL** to the article, dont hallucinate the URL, save the actual link of the article\n\n"
+
+        "Important guidelines:\n"
+        "- **Exclude** ads, unrelated content, menus, or metadata.\n"
+        "- **Do not hallucinate or fabricate** any information.\n"
+        "- If a detail is unknown or unavailable, leave it blank without guessing.\n"
     )
+
 
     print("\n=== TASK ===\n")
     print(task)
@@ -80,8 +88,7 @@ async def search_and_process_articles(
     # Initialize the browser agent with LLM and the task description
     agent = Agent(
         task=task,
-        llm=llm,
-        save_conversation_path='conversation.txt',
+        llm=llm
     )
 
     # Run the agent asynchronously and fetch the result
@@ -90,8 +97,8 @@ async def search_and_process_articles(
     return result
 
 async def main():
-    # Call the function with your desired region and categories
-    articles_summary = await search_and_process_articles()
+    # Call the function with your desired categories
+    articles_summary = await search_and_process_articles(["politics", "finance"], summary_type="detailed", summary_style="Humorous", summary_language="English")
     print("\n=== Summarized Articles ===\n")
     print(articles_summary.final_result())
     print("\n=== END ===\n")
